@@ -54,6 +54,21 @@ const Q=[
 ];
 // fixed interleaving hides dimensions while keeping facilitation question numbers stable.
 let i=0, ans=Array(Q.length).fill(null);
+const RESULT_ENDPOINT='https://script.google.com/macros/s/AKfycbxyWdBwPlt98MLsCaW9NyrQ3sHYXFCQhPsHhDO3D9cuyweajK_oel7WpCiljEIdCcHK/exec';
+let resultSent=false;
+
+function sendResult(s,type){
+  if(resultSent) return;
+  resultSent=true;
+  fetch(RESULT_ENDPOINT,{
+    method:'POST',
+    mode:'no-cors',
+    headers:{'Content-Type':'text/plain;charset=utf-8'},
+    body:JSON.stringify({
+      E:s.E,I:s.I,S:s.S,N:s.N,T:s.T,F:s.F,J:s.J,P:s.P,type:type
+    })
+  }).catch(()=>{});
+}
 const profiles={
 ISTJ:['신뢰할 수 있는 현실형','사실과 기준을 바탕으로 책임 있게 일을 마무리하는 경향이 있습니다.','책임감','정확성','체계성','약속 준수','변화가 빠르거나 기준이 모호할 때 기존 방식에 지나치게 의존하지 않는지 살펴보세요.','변화의 이유와 기대 결과를 먼저 확인하고, 다른 사람의 아이디어에도 검토할 시간을 주면 협업 폭이 넓어집니다.'],
 ISFJ:['세심한 지원형','주변의 필요를 세심하게 살피며 맡은 일을 안정적으로 지원하는 경향이 있습니다.','배려','성실함','관계 유지','세부 확인','상대의 요구를 우선하다 자신의 의견이나 부담을 뒤로 미루지 않도록 주의하세요.','도움을 주기 전에 기대 역할과 우선순위를 확인하고, 필요한 경우 자신의 한계도 명확히 표현해 보세요.'],
@@ -75,6 +90,6 @@ ENTJ:['목표 지향 전략형','목표를 분명히 세우고 논리와 구조�
 function begin(){document.getElementById('start').classList.add('hidden');document.getElementById('quiz').classList.remove('hidden');render()}
 function render(){let x=Q[i];document.getElementById('q').textContent=`Q${i+1}`;document.getElementById('a').textContent=x[1];document.getElementById('b').textContent=x[2];document.getElementById('a').classList.toggle('sel',ans[i]===0);document.getElementById('b').classList.toggle('sel',ans[i]===1);document.getElementById('next').disabled=ans[i]===null;document.getElementById('next').textContent=i===Q.length-1?'결과 보기':'다음';document.getElementById('count').textContent=`${i+1} / ${Q.length}`;document.getElementById('bar').style.width=((i+1)/Q.length*100)+'%'}
 function pick(v){ans[i]=v;render()} function prev(){if(i>0){i--;render()}} function next(){if(ans[i]===null)return;if(i<Q.length-1){i++;render()}else finish()}
-function finish(){let s={E:0,I:0,S:0,N:0,T:0,F:0,J:0,P:0};Q.forEach((x,k)=>{let d=x[0]; let letter=ans[k]===0?d[0]:d[1];s[letter]++});let type=(s.E>s.I?'E':'I')+(s.S>s.N?'S':'N')+(s.T>s.F?'T':'F')+(s.J>s.P?'J':'P');let p=profiles[type];document.getElementById('quiz').classList.add('hidden');document.getElementById('result').classList.remove('hidden');document.getElementById('type').textContent=type;document.getElementById('title').textContent=p[0];document.getElementById('summary').textContent=p[1];document.getElementById('strengths').innerHTML=p.slice(2,6).map(v=>`<span class="chip">${v}</span>`).join('');document.getElementById('watch').textContent=p[6];document.getElementById('tip').textContent=p[7];document.getElementById('scores').innerHTML=[['E','I'],['S','N'],['T','F'],['J','P']].map(([a,b])=>`<div class="score"><b>${a} ${s[a]} : ${b} ${s[b]}</b><br><span class="sub">선호: ${s[a]>s[b]?a:b}</span></div>`).join('');window.scrollTo({top:0,behavior:'smooth'})}
-function restart(){i=0;ans=Array(Q.length).fill(null);document.getElementById('result').classList.add('hidden');document.getElementById('start').classList.remove('hidden');window.scrollTo({top:0,behavior:'smooth'})}
+function finish(){let s={E:0,I:0,S:0,N:0,T:0,F:0,J:0,P:0};Q.forEach((x,k)=>{let d=x[0]; let letter=ans[k]===0?d[0]:d[1];s[letter]++});let type=(s.E>s.I?'E':'I')+(s.S>s.N?'S':'N')+(s.T>s.F?'T':'F')+(s.J>s.P?'J':'P');let p=profiles[type];sendResult(s,type);document.getElementById('quiz').classList.add('hidden');document.getElementById('result').classList.remove('hidden');document.getElementById('type').textContent=type;document.getElementById('title').textContent=p[0];document.getElementById('summary').textContent=p[1];document.getElementById('strengths').innerHTML=p.slice(2,6).map(v=>`<span class="chip">${v}</span>`).join('');document.getElementById('watch').textContent=p[6];document.getElementById('tip').textContent=p[7];document.getElementById('scores').innerHTML=[['E','I'],['S','N'],['T','F'],['J','P']].map(([a,b])=>`<div class="score"><b>${a} ${s[a]} : ${b} ${s[b]}</b><br><span class="sub">선호: ${s[a]>s[b]?a:b}</span></div>`).join('');window.scrollTo({top:0,behavior:'smooth'})}
+function restart(){i=0;ans=Array(Q.length).fill(null);resultSent=false;document.getElementById('result').classList.add('hidden');document.getElementById('start').classList.remove('hidden');window.scrollTo({top:0,behavior:'smooth'})}
 </script></body></html>
